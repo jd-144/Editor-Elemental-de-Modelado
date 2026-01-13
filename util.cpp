@@ -20,7 +20,7 @@ bool ReadFile(const char* fileName, string& destino)
 	return false;
 }
 
-// Calcula el cuaterniÛn que rota el vector from hacia el vector to
+// Calcula el cuaterni√≥n que rota el vector from hacia el vector to
 glm::quat quatFromVectors(const glm::vec3& from, const glm::vec3& to) {
     glm::vec3 crossProduct = glm::cross(from, to);
     float dotProduct = glm::dot(from, to);
@@ -31,7 +31,7 @@ glm::quat quatFromVectors(const glm::vec3& from, const glm::vec3& to) {
 glm::vec3 screenToWorld(int x, int y, const glm::mat4& viewProjectionMatrix,
     int screenWidth, int screenHeight) {
 
-	// ConversiÛn a coordenadas normalizadas [-1, 1]
+	// Conversi√≥n a coordenadas normalizadas [-1, 1]
     float nx = (2.0f * x) / screenWidth - 1.0f;
     float ny = 1.0f - (2.0f * y) / screenHeight;
 
@@ -48,13 +48,13 @@ glm::vec3 screenToWorld(int x, int y, const glm::mat4& viewProjectionMatrix,
     rayWorldNear /= rayWorldNear.w;
     rayWorldFar /= rayWorldFar.w;
 
-    // Calcular direcciÛn del rayo
+    // Calcular direcci√≥n del rayo
     glm::vec3 rayDirection = glm::normalize(rayWorldFar - rayWorldNear);
 
     return rayDirection;
 }
-// Algoritmo de MˆllerñTrumbore
-// Devuelve el punto de intersecciÛn si existe, nullptr si no
+// Algoritmo de M√∂ller‚ÄìTrumbore
+// Devuelve el punto de intersecci√≥n si existe, nullptr si no
 glm::vec3* rayIntersectsFace(
     const glm::vec3& rayOrigin, const glm::vec3& rayDirection,
     Model& model, const Face& face, unsigned int& triangleIndex, float& outT)
@@ -70,30 +70,30 @@ glm::vec3* rayIntersectsFace(
         glm::vec3 edge2 = triangleV2 - triangleV0;
         glm::vec3 normal = glm::normalize(glm::cross(edge1, edge2));
 
-		// Backface culling: solo intersecciones que miran a la c·mara
+		// Backface culling: solo intersecciones que miran a la c√°mara
         if (glm::dot(normal, rayDirection) >= 0.0f) {
             continue;
         }
         glm::vec3 rayCrossEdge2 = glm::cross(rayDirection, edge2);
         float det = glm::dot(edge1, rayCrossEdge2);
-		// Rayo paralelo al tri·ngulo
+		// Rayo paralelo al tri√°ngulo
         if (fabs(det) < epsilon) {
             continue;
         }
         float invDet = 1.0f / det;
         glm::vec3 sVec = rayOrigin - triangleV0;
-		// Coordenadas baricÈntricas u
+		// Coordenadas baric√©ntricas u
         float u = invDet * glm::dot(sVec, rayCrossEdge2);
         if (u < 0.0f || u > 1.0f) {
             continue;
         }
         glm::vec3 sCrossEdge1 = glm::cross(sVec, edge1);
-		// Coordenadas baricÈntricas v
+		// Coordenadas baric√©ntricas v
         float v = invDet * glm::dot(rayDirection, sCrossEdge1);
         if (v < 0.0f || (u + v > 1.0f)) {
             continue;
         }
-		// Distancia t desde el origen del rayo al punto de intersecciÛn
+		// Distancia t desde el origen del rayo al punto de intersecci√≥n
         float t = invDet * glm::dot(edge2, sCrossEdge1);
 		// Delante del origen del rayo
         if (t >= epsilon) {
@@ -105,7 +105,7 @@ glm::vec3* rayIntersectsFace(
     return nullptr;
 }
 
-// Verifica si un vÈrtice ya existe en la lista de vÈrtices
+// Verifica si un v√©rtice ya existe en la lista de v√©rtices
 bool vertexExists(const std::vector<Vertex>& vertices, const glm::vec3& position, float epsilon) {
     for (const auto& vertex : vertices) {
         float distance = glm::length(vertex.pos - position);
@@ -116,10 +116,10 @@ bool vertexExists(const std::vector<Vertex>& vertices, const glm::vec3& position
     return false;
 }
 
-// Subdivide una cara aÒadiendo un nuevo vÈrtice en el tri·ngulo especificado de la cara
+// Subdivide una cara a√±adiendo un nuevo v√©rtice en el tri√°ngulo especificado de la cara
 void subdivideFace(Model& model, Face& face, const glm::vec3& newVertexPos, unsigned int trianglePositition) {
     if (trianglePositition >= face.index.size()) return;
-	// Evita aÒadir vÈrtices duplicados o muy cercanos a los existentes
+	// Evita a√±adir v√©rtices duplicados o muy cercanos a los existentes
     if (vertexExists(model.getVertex(), newVertexPos)) return;
 
     std::array<unsigned int, 3> selectedTriangle = face.index[trianglePositition];
@@ -127,7 +127,7 @@ void subdivideFace(Model& model, Face& face, const glm::vec3& newVertexPos, unsi
     glm::vec3 triangleA = model.getVertex()[selectedTriangle[0]].pos;
     glm::vec3 triangleB = model.getVertex()[selectedTriangle[1]].pos;
     glm::vec3 triangleC = model.getVertex()[selectedTriangle[2]].pos;
-	float minDistance = 0.001f; // Distancia mÌnima al vÈrtice existente
+	float minDistance = 0.001f; // Distancia m√≠nima al v√©rtice existente
     if (glm::length(newVertexPos - triangleA) < minDistance ||
         glm::length(newVertexPos - triangleB) < minDistance ||
         glm::length(newVertexPos - triangleC) < minDistance) {
@@ -136,32 +136,32 @@ void subdivideFace(Model& model, Face& face, const glm::vec3& newVertexPos, unsi
     Vertex newVertex(newVertexPos.x, newVertexPos.y, newVertexPos.z);
     model.addVertex(newVertex);
 
-	// Crea tres nuevas caras subdividiendo el tri·ngulo original
+	// Crea tres nuevas caras subdividiendo el tri√°ngulo original
     unsigned int newVertexIndex = model.getVertex().size() - 1;
 	
     std::vector<std::array<unsigned int, 3>> newTriangles = {
-		{selectedTriangle[0], selectedTriangle[1], newVertexIndex}, // Tri·ngulo AB-N
-		{selectedTriangle[1], selectedTriangle[2], newVertexIndex}, // Tri·ngulo BC-N
-		{selectedTriangle[2], selectedTriangle[0], newVertexIndex} // Tri·ngulo CA-N
+		{selectedTriangle[0], selectedTriangle[1], newVertexIndex}, // Tri√°ngulo AB-N
+		{selectedTriangle[1], selectedTriangle[2], newVertexIndex}, // Tri√°ngulo BC-N
+		{selectedTriangle[2], selectedTriangle[0], newVertexIndex} // Tri√°ngulo CA-N
     };
     face.index.erase(face.index.begin() + trianglePositition);
     face.index.insert(face.index.end(), newTriangles.begin(), newTriangles.end());
     calculateNormals(model);
 }
 
-// Actualiza los buffers de un modelo tras modificar su geometrÌa
+// Actualiza los buffers de un modelo tras modificar su geometr√≠a
 void updateModelMesh(Model& model, MeshBuffers& mesh) {
     std::vector<Vertex> vertex = model.getVertex();
     std::vector<unsigned int> index = model.getAllIndex();
 
-    // Actualizar VBO (vÈrtices)
+    // Actualizar VBO (v√©rtices)
     glBindBuffer(GL_ARRAY_BUFFER, mesh.VBO);
     glBufferData(GL_ARRAY_BUFFER, vertex.size() * sizeof(Vertex), vertex.data(), GL_DYNAMIC_DRAW);
-    // Actualizar bordes del perÌmetro
+    // Actualizar bordes del per√≠metro
     std::vector<unsigned int> edgeIndices;
     std::set<std::pair<unsigned int, unsigned int>> allPerimeterEdges;
 
-    // Extraer bordes del perÌmetro de cada cara
+    // Extraer bordes del per√≠metro de cada cara
     for (auto& face : model.getFaces()) {
         std::vector<std::pair<unsigned int, unsigned int>> facePerimeter = perimeterIndex(face);
         for (const auto& edge : facePerimeter) {
@@ -173,7 +173,7 @@ void updateModelMesh(Model& model, MeshBuffers& mesh) {
         }
     }
 
-    // Convertir a vector de Ìndices
+    // Convertir a vector de √≠ndices
     for (const auto& edge : allPerimeterEdges) {
         edgeIndices.push_back(edge.first);
         edgeIndices.push_back(edge.second);
@@ -187,7 +187,7 @@ void updateModelMesh(Model& model, MeshBuffers& mesh) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    // Actualizar EBO (Ìndices de tri·ngulos)
+    // Actualizar EBO (√≠ndices de tri√°ngulos)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, index.size() * sizeof(unsigned int), index.data(), GL_DYNAMIC_DRAW);
     mesh.indexCount = (GLuint)index.size();
@@ -195,7 +195,7 @@ void updateModelMesh(Model& model, MeshBuffers& mesh) {
    
 }
 
-// Calcula las normales de todos los vÈrtices del modelo USAR SOLO PARA ILUMINACI”N DE RENDERIZADO
+// Calcula las normales de todos los v√©rtices del modelo USAR SOLO PARA ILUMINACI√ìN DE RENDERIZADO
 void calculateNormals(Model& model) {
     std::vector<Vertex>& vertices = model.getVertex();
     std::vector<Face>& faces = model.getFaces();
@@ -205,13 +205,13 @@ void calculateNormals(Model& model) {
         vertex.normal = glm::vec3(0.0f, 0.0f, 0.0f);
     }
 
-    // Calcular normales de cada cara y acumular en los vÈrtices
+    // Calcular normales de cada cara y acumular en los v√©rtices
     for (auto& face : faces) {
         for (auto& triangle : face.index) {
             if (triangle[0] >= vertices.size() ||
                 triangle[1] >= vertices.size() ||
                 triangle[2] >= vertices.size()) {
-                continue; // Saltar tri·ngulos inv·lidos
+                continue; // Saltar tri√°ngulos inv√°lidos
             }
 			Vertex& vA = vertices[triangle[0]];
 			Vertex& vB = vertices[triangle[1]];
@@ -232,11 +232,11 @@ void calculateNormals(Model& model) {
             // Calcular normal de la cara (producto cruz)
             glm::vec3 faceNormal = glm::cross(edge1, edge2);
 
-            // Solo aÒadir si la normal es v·lida (no cero)
+            // Solo a√±adir si la normal es v√°lida (no cero)
             if (glm::length(faceNormal) > 0.0001f) {
                 faceNormal = glm::normalize(faceNormal);
 
-                // Acumular la normal en cada vÈrtice del tri·ngulo
+                // Acumular la normal en cada v√©rtice del tri√°ngulo
                 vertices[triangle[0]].normal += faceNormal;
                 vertices[triangle[1]].normal += faceNormal;
                 vertices[triangle[2]].normal += faceNormal;
@@ -244,13 +244,13 @@ void calculateNormals(Model& model) {
         }
     }
 
-    // Normalizar todas las normales de vÈrtices
+    // Normalizar todas las normales de v√©rtices
     for (auto& vertex : vertices) {
         if (glm::length(vertex.normal) > 0.0001f) {
             vertex.normal = glm::normalize(vertex.normal);
         }
         else {
-            // Si no se pudo calcular una normal v·lida, usar una por defecto
+            // Si no se pudo calcular una normal v√°lida, usar una por defecto
             vertex.normal = glm::vec3(0.0f, 1.0f, 0.0f);
         }
     }
@@ -259,7 +259,7 @@ void calculateNormals(Model& model) {
 void addShader(GLuint shaderProgram, const char* shaderText, GLenum shaderType) {
     GLuint shaderObj = glCreateShader(shaderType);
     if (shaderObj == 0) {
-        fprintf(stderr, "Error creaciÛn shader object de tipo %d \n", shaderType);
+        fprintf(stderr, "Error creaci√≥n shader object de tipo %d \n", shaderType);
         exit(1);
     }
     const GLchar* p[1];
@@ -279,11 +279,11 @@ void addShader(GLuint shaderProgram, const char* shaderText, GLenum shaderType) 
     glAttachShader(shaderProgram, shaderObj);
 }
 
-// Compila los shaders de vÈrtices y fragmentos y obtiene la ubicaciÛn de la matriz de vista-proyecciÛn
+// Compila los shaders de v√©rtices y fragmentos y obtiene la ubicaci√≥n de la matriz de vista-proyecci√≥n
 void compileShaders(const char* vertexShaderFileName,const char* fragmentShaderFileName, GLint* viewProjectionLocationPtr) {
     GLuint shaderProgram = glCreateProgram();
     if (shaderProgram == 0) {
-        fprintf(stderr, "Error creaciÛn shader program \n");
+        fprintf(stderr, "Error creaci√≥n shader program \n");
         exit(1);
     }
     std::string vertexShader, fragmentShader;
@@ -319,7 +319,7 @@ void compileShaders(const char* vertexShaderFileName,const char* fragmentShaderF
     glUseProgram(shaderProgram);
 }
 
-// Crea un modelo de flecha orientado en la posiciÛn indicada y con la direcciÛn dada que devueve la punta de la flecha
+// Crea un modelo de flecha orientado en la posici√≥n indicada y con la direcci√≥n dada que devueve la punta de la flecha
 glm::vec3 createArrow(Model& arrowModel, const glm::vec3& position,
     const glm::vec3& color, const glm::vec3& direction,
     const glm::quat& rotation) {
@@ -332,7 +332,7 @@ glm::vec3 createArrow(Model& arrowModel, const glm::vec3& position,
     float pyramidBaseSize = 0.08f;
     float pyramidHeight = 0.2f;
 
-    // Aplicar rotaciÛn a la direcciÛn base
+    // Aplicar rotaci√≥n a la direcci√≥n base
     glm::vec3 rotatedDirection = rotation * direction;
 
     glm::vec3 baseDir = glm::vec3(0.0f, 0.0f, 1.0f);
@@ -439,8 +439,8 @@ glm::vec3 createArrow(Model& arrowModel, const glm::vec3& position,
 
     return pyramidTip;
 }
-// IntersecciÛn rayo-vÈrtice
-// Devuelve true si el rayo pasa suficientemente cerca del vÈrtice y est· orientado hacia la normal
+// Intersecci√≥n rayo-v√©rtice
+// Devuelve true si el rayo pasa suficientemente cerca del v√©rtice y est√° orientado hacia la normal
 bool rayIntersectsVertex(
     const glm::vec3& rayOrigin,
     const glm::vec3& rayDir,
@@ -450,16 +450,16 @@ bool rayIntersectsVertex(
 {
     glm::vec3& vertexPos = vertex.pos;
 
-	// Vector desde el vÈrtice al origen del rayo
+	// Vector desde el v√©rtice al origen del rayo
     glm::vec3 diff = vertexPos - rayOrigin;
-	// ProyecciÛn del vector diff sobre la direcciÛn del rayo
+	// Proyecci√≥n del vector diff sobre la direcci√≥n del rayo
 	glm::vec3 normalizedRayDir = glm::normalize(rayDir);
 	float t = glm::dot(diff, normalizedRayDir); // distancia a lo largo del rayo
 
-    if (t < 0.0f) return false; // detr·s de c·mara
+    if (t < 0.0f) return false; // detr√°s de c√°mara
 
     glm::vec3 closestPoint = rayOrigin + t * rayDir;
-	// Distancia desde el punto m·s cercano del rayo al vÈrtice
+	// Distancia desde el punto m√°s cercano del rayo al v√©rtice
     float dist = glm::length(closestPoint - vertexPos);
     outDistance = t;
 	// Vertice dentro del radio
@@ -486,14 +486,14 @@ glm::vec3 calculateFaceNormal(Model& model, const Face& face) {
         // Calcular normal de la cara (producto cruz)
         glm::vec3 triangleNormal = glm::cross(edge1, edge2);
 
-        // Solo sumar si la normal es v·lida
+        // Solo sumar si la normal es v√°lida
         if (glm::length(triangleNormal) > 0.0001f) {
             normal += triangleNormal; // NO NORMALIZAR
             validTriangles++;
         }
     }
 
-    // Promedio de las normales de todos los tri·ngulos v·lidos
+    // Promedio de las normales de todos los tri√°ngulos v√°lidos
     if (validTriangles > 0 && glm::length(normal) > 0.0001f) {
         return glm::normalize(normal);
     }
@@ -518,7 +518,7 @@ std::vector<std::pair<unsigned int, unsigned int>> perimeterIndex(Face& face) {
 				edgeCount.erase(edge2); // Borrar si ya existe (interior)
             }
             else {
-                edgeCount.insert(edge1); // Insertar si no existe (posible perÌmetro)
+                edgeCount.insert(edge1); // Insertar si no existe (posible per√≠metro)
             }
         }
     }
@@ -527,7 +527,7 @@ std::vector<std::pair<unsigned int, unsigned int>> perimeterIndex(Face& face) {
 	return perimeterIndices;
 }
 
-// Calcula el centroide de un modelo (media de sus vÈrtices).
+// Calcula el centroide de un modelo (media de sus v√©rtices).
 glm::vec3 centroidModel(Model& model) {
     glm::vec3 sum(0.0f);
     const auto& vertices = model.getVertex();
@@ -551,43 +551,4 @@ glm::vec3 centroidFace(Model& model, Face& face) {
         sum += vertices[index].pos;
     }
     return sum / (float)uniqueIndices.size();
-}
-
-
-bool isFacePlanar(Model& model, Face& face) {
-	float epsilon = 0.1f;
-	glm::vec3 normal = calculateFaceNormal(model, face);
-    for (const auto& triangle : face.index) {
-        glm::vec3 v0 = model.getVertex()[triangle[0]].pos;
-        glm::vec3 v1 = model.getVertex()[triangle[1]].pos;
-        glm::vec3 v2 = model.getVertex()[triangle[2]].pos;
-        glm::vec3 edge1 = v1 - v0;
-        glm::vec3 edge2 = v2 - v0;
-        glm::vec3 triangleNormal = glm::cross(edge1, edge2);
-        
-        triangleNormal = glm::normalize(triangleNormal);
-        if (glm::length(normal - triangleNormal) > epsilon) {
-            return false; // Normales no coinciden
-        }
-	}
-    return true; // Todas las normales coinciden
-}
-
-void makeFacePlanar(Model& model, Face& face) {
-    float epsilon = 0.0001f;
-    glm::vec3 normal = calculateFaceNormal(model, face);
-    glm::vec3 centroid = centroidFace(model, face);
-	// vertices unicos
-    std::set<unsigned int> uniqueIndices;
-    for (const auto& triangle : face.index) {
-        for (const auto& index : triangle) {
-            uniqueIndices.insert(index);
-        }
-    }
-    for (const auto& index : uniqueIndices) {
-        glm::vec3& vertexPos = model.getVertex()[index].pos;
-        glm::vec3 toVertex = vertexPos - centroid;
-        float distance = glm::dot(toVertex, normal);
-        vertexPos -= distance * normal; // Proyectar sobre el plano
-	}
 }
