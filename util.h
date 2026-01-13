@@ -179,13 +179,8 @@ void compileShaders(const char* vertexShaderFileName, const char* fragmentShader
 void addShader(GLuint shaderProgram, const char* shaderText, GLenum shaderType);
 glm::vec3 calculateFaceNormal(Model& model, const Face& face);
 
-// Devuelve una lista de pares de índices que representan los bordes únicos de una cara.
+// Devuelve una lista de pares de Ã­ndices que representan los bordes Ãºnicos de una cara.
 std::vector<std::pair<unsigned int, unsigned int>> perimeterIndex(Face& face);
 
 glm::vec3 centroidModel(Model& model);
 glm::vec3 centroidFace(Model& model, Face& face);
-
-bool isFacePlanar(Model& model, Face& face);
-void makeFacePlanar(Model& model, Face& face);
-
-std::vector<std::pair<unsigned int, unsigned int>> getExternalEdges(Model& model, Face& face);
