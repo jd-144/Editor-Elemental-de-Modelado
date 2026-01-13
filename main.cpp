@@ -19,7 +19,7 @@ std::vector<Model> modelList;
 const char* VERTEXSHADERFILENAME = "shader.vert";
 const char* FRAGMENTSHADERFILENAME = "shader.frag";
 
-// Modos de interacciÛn y selecciÛn
+// Modos de interacci√≥n y selecci√≥n
 enum Mode { NONE_MODE, ROTATE, TRANSLATE, SCALE, SELECT, CREATE_VERTEX, EXTRUDE};
 enum SelectionMode { UNKNOWN, MODEL, FACE, VERTEX };
 enum GizmoAxis { NONE_AXIS, X_AXIS, Y_AXIS, Z_AXIS };
@@ -39,7 +39,7 @@ int height = 1080 / 2;
 GLint viewProjectionLocation, lightPosLocation, viewPosLocation;
 Camara* cam = nullptr;
 
-// Variables de selecciÛn
+// Variables de selecci√≥n
 size_t selectedModelPosition = -1;
 size_t selectedFacePosition = -1;
 unsigned int selectedTrianglePosition = -1;
@@ -48,7 +48,7 @@ glm::vec3 lastIntersectionPoint;
 glm::vec3 selectedVertexWorldPos;
 
 bool createdVertexExtruded = false;
-// Inicializa la c·mara principal con par·metros por defecto.
+// Inicializa la c√°mara principal con par√°metros por defecto.
 static void initCamara() {
     if (cam) delete cam;
 	float FOV = 45.0f;
@@ -71,14 +71,14 @@ static void initCamara() {
     cam = new Camara(pos, target, up, left, right, bottom, top, zNear, zFar);
 }
 
-// Proyecta las coordenadas del mouse a una esfera para rotaciÛn orbital.
+// Proyecta las coordenadas del mouse a una esfera para rotaci√≥n orbital.
 static glm::vec3 mapToSphere(int x, int y) {
 	float nx = (2.0f * x - width) / width; // Normaliza a [-1, 1]
 	float ny = (height - 2.0f * y) / height; // Normaliza a [-1, 1], invierte Y
     float length = nx * nx + ny * ny;
     if (length <= 1.0f) {
 		// Dentro de la esfera 
-		float nz = sqrt(1.0f - length); // usa la fÛrmula de la esfera x^2 + y^2 + z^2 = 1
+		float nz = sqrt(1.0f - length); // usa la f√≥rmula de la esfera x^2 + y^2 + z^2 = 1
         return glm::vec3(nx, ny, nz);
     } else {
 		// Fuera de la esfera, proyecta al borde de la esfera
@@ -95,7 +95,7 @@ MeshBuffers createMesh(Model& model) {
     std::vector<unsigned int> index = model.getAllIndex();
     MeshBuffers mesh;
 
-    // Crear VAO principal para tri·ngulos
+    // Crear VAO principal para tri√°ngulos
     glGenVertexArrays(1, &mesh.VAO);
     glBindVertexArray(mesh.VAO);
     glGenBuffers(1, &mesh.VBO);
@@ -105,7 +105,7 @@ MeshBuffers createMesh(Model& model) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, index.size() * sizeof(unsigned int), index.data(), GL_DYNAMIC_DRAW);
 
-    // Atributos: posiciÛn, normal, color
+    // Atributos: posici√≥n, normal, color
     glEnableVertexAttribArray(0); // inPos
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1); // inNormal
@@ -118,7 +118,7 @@ MeshBuffers createMesh(Model& model) {
     std::vector<unsigned int> edgeIndices;
     std::set<std::pair<unsigned int, unsigned int>> allPerimeterEdges;
 
-    // Extraer bordes del perÌmetro de cada cara
+    // Extraer bordes del per√≠metro de cada cara
     for (auto& face : model.getFaces()) {
         std::vector<std::pair<unsigned int, unsigned int>> facePerimeter = perimeterIndex(face);
         for (const auto& edge : facePerimeter) {
@@ -130,7 +130,7 @@ MeshBuffers createMesh(Model& model) {
         }
     }
 
-    // Convertir a vector de Ìndices
+    // Convertir a vector de √≠ndices
     for (const auto& edge : allPerimeterEdges) {
         edgeIndices.push_back(edge.first);
         edgeIndices.push_back(edge.second);
@@ -174,10 +174,10 @@ static void cleanupAllMeshes() {
 
 
 
-// Crea un nuevo vÈrtice en la cara seleccionada del modelo seleccionado.
+// Crea un nuevo v√©rtice en la cara seleccionada del modelo seleccionado.
 static void createVertex() {
     if (selectedModelPosition !=-1 && selectedFacePosition != -1) {
-		// Se aÒade un nuevo vÈrtice en el punto de intersecciÛn uniendolo a los vÈrtices del tri·ngulo seleccionado
+		// Se a√±ade un nuevo v√©rtice en el punto de intersecci√≥n uniendolo a los v√©rtices del tri√°ngulo seleccionado
         Model& model = modelList[selectedModelPosition];
         Face& face = model.getFaces()[selectedFacePosition];
         subdivideFace(model, face, lastIntersectionPoint, selectedTrianglePosition);
@@ -188,18 +188,18 @@ static void createVertex() {
 
 
 
-// Detecta si el usuario ha hecho clic sobre alg˙n eje del gizmo de transformaciÛn.
+// Detecta si el usuario ha hecho clic sobre alg√∫n eje del gizmo de transformaci√≥n.
 static bool detectGizmoClick(const glm::vec3& rayOrigin, const glm::vec3& rayDirection) {
     if (!showGizmo || !(currentMode == TRANSLATE || currentMode == ROTATE || currentMode == SCALE || currentMode == EXTRUDE)) return false;
     float closestT = FLT_MAX;
     GizmoAxis hitAxis = NONE_AXIS;
-    // FunciÛn lambda para comprobar intersecciÛn con cada modelo del gizmo
+    // Funci√≥n lambda para comprobar intersecci√≥n con cada modelo del gizmo
     auto checkGizmoModel = [&](Model& gizmoModel, GizmoAxis axis) {
         for (int fi = 0; fi < gizmoModel.getFaces().size(); ++fi) {
             Face& face = gizmoModel.getFaces()[fi];
             unsigned int trianglePosition = -1;
             float t = -1.0f;
-            // Comprueba intersecciÛn rayo-cara
+            // Comprueba intersecci√≥n rayo-cara
             glm::vec3* intersectionPoint = rayIntersectsFace(rayOrigin, rayDirection, gizmoModel, face, trianglePosition, t);
             if (intersectionPoint) {
 				hitAxis = axis; // Guarda el eje detectado
@@ -212,7 +212,7 @@ static bool detectGizmoClick(const glm::vec3& rayOrigin, const glm::vec3& rayDir
     checkGizmoModel(gizmo.modelX, X_AXIS);
     checkGizmoModel(gizmo.modelY, Y_AXIS);
     checkGizmoModel(gizmo.modelZ, Z_AXIS);
-    // Si se detectÛ un eje, lo selecciona
+    // Si se detect√≥ un eje, lo selecciona
     if (hitAxis != NONE_AXIS) {
         selectedAxis = hitAxis;
         return true;
@@ -220,7 +220,7 @@ static bool detectGizmoClick(const glm::vec3& rayOrigin, const glm::vec3& rayDir
     return false;
 }
 
-// Busca el vÈrtice m·s cercano al rayo lanzado desde la c·mara.
+// Busca el v√©rtice m√°s cercano al rayo lanzado desde la c√°mara.
 static bool findClosestVertex(const glm::vec3& rayOrigin, const glm::vec3& rayDirection,
     Model*& outModel, Vertex*& outVertex, size_t& outModelIndex,
     size_t& outVertexIndex, glm::vec3& outWorldPos) {
@@ -234,13 +234,13 @@ static bool findClosestVertex(const glm::vec3& rayOrigin, const glm::vec3& rayDi
     for (size_t mi = 0; mi < modelList.size(); ++mi) {
         Model& model = modelList[mi];
         std::vector<Vertex>& vertices = model.getVertex();
-        // Recorre todos los vÈrtices del modelo
+        // Recorre todos los v√©rtices del modelo
         for (size_t vi = 0; vi < vertices.size(); ++vi) {
             Vertex& vertex = vertices[vi];
             float distance = -1.0f;
-            // Comprueba si el rayo pasa cerca del vÈrtice
+            // Comprueba si el rayo pasa cerca del v√©rtice
             if (rayIntersectsVertex(rayOrigin, rayDirection, vertex, 0.1f, distance)) {
-                // Si es el m·s cercano hasta ahora, lo guarda
+                // Si es el m√°s cercano hasta ahora, lo guarda
                 if (distance < closestDistance) {
                     closestDistance = distance;
                     closestModel = &model;
@@ -252,7 +252,7 @@ static bool findClosestVertex(const glm::vec3& rayOrigin, const glm::vec3& rayDi
             }
         }
     }
-    // Si se encontrÛ un vÈrtice cercano, actualiza los par·metros de salida
+    // Si se encontr√≥ un v√©rtice cercano, actualiza los par√°metros de salida
     if (closestModel) {
         outModel = closestModel;
         outVertex = closestVertex;
@@ -264,7 +264,7 @@ static bool findClosestVertex(const glm::vec3& rayOrigin, const glm::vec3& rayDi
     return false;
 }
 
-// Busca la intersecciÛn m·s cercana entre el rayo y las caras de todos los modelos.
+// Busca la intersecci√≥n m√°s cercana entre el rayo y las caras de todos los modelos.
 static bool findClosestFaceIntersection(const glm::vec3& rayOrigin, const glm::vec3& rayDirection,
     Model*& outModel, Face*& outFace, size_t& outModelIndex,
     size_t& outFaceIndex, unsigned int& outTriangleIndex,
@@ -285,7 +285,7 @@ static bool findClosestFaceIntersection(const glm::vec3& rayOrigin, const glm::v
             Face& face = faces[fi];
             unsigned int trianglePosition = -1;
             float t = -1.0f;
-            // Comprueba intersecciÛn rayo-cara
+            // Comprueba intersecci√≥n rayo-cara
             glm::vec3* intersectionPoint = rayIntersectsFace(rayOrigin, rayDirection, model, face, trianglePosition, t);
             if (intersectionPoint && t < closestT) {
                 closestT = t;
@@ -299,7 +299,7 @@ static bool findClosestFaceIntersection(const glm::vec3& rayOrigin, const glm::v
             delete intersectionPoint;
         }
     }
-    // Si se encontrÛ una intersecciÛn, actualiza los par·metros de salida
+    // Si se encontr√≥ una intersecci√≥n, actualiza los par√°metros de salida
     if (closestModel) {
         outModel = closestModel;
         outFace = closestFace;
@@ -312,7 +312,7 @@ static bool findClosestFaceIntersection(const glm::vec3& rayOrigin, const glm::v
     return false;
 }
 
-// Actualiza la posiciÛn y modelos del gizmo seg˙n la selecciÛn.
+// Actualiza la posici√≥n y modelos del gizmo seg√∫n la selecci√≥n.
 static void updateGizmoForSelectedModel() {
     if ((selectedModelPosition != -1 && currentSelection == MODEL &&
         (currentMode == TRANSLATE || currentMode == SCALE || currentMode == EXTRUDE)) ||
@@ -325,7 +325,7 @@ static void updateGizmoForSelectedModel() {
             gizmoPosition = selectedVertexWorldPos;
         }
         else if (currentSelection == FACE && selectedFacePosition != -1 && selectedModelPosition != -1) {
-            // Para extrusiÛn, posicionar el gizmo en el centro de la cara y orientarlo seg˙n la normal
+            // Para extrusi√≥n, posicionar el gizmo en el centro de la cara y orientarlo seg√∫n la normal
 			Model& selectedModel = modelList[selectedModelPosition];
 			Face& selectedFace = selectedModel.getFaces()[selectedFacePosition];
 
@@ -349,7 +349,7 @@ static void updateGizmoForSelectedModel() {
         showGizmo = false;
     }
 }
-// Reinicia todas las variables de selecciÛn.
+// Reinicia todas las variables de selecci√≥n.
 static void resetSelection() {
     selectedModelPosition = -1;
     selectedFacePosition = -1;
@@ -384,7 +384,7 @@ static void gizmoLookAtNormal() {
     }
 }
 
-// Realiza la selecciÛn de modelo, cara o vÈrtice seg˙n la posiciÛn del mouse en pantalla.
+// Realiza la selecci√≥n de modelo, cara o v√©rtice seg√∫n la posici√≥n del mouse en pantalla.
 static void select(int x, int y) {
 
     if (currentSelection != FACE &&
@@ -392,14 +392,14 @@ static void select(int x, int y) {
         return;
     }
 
-	// Calcula el rayo desde la c·mara a la pantalla usando la matriz de vista y proyecciÛn
+	// Calcula el rayo desde la c√°mara a la pantalla usando la matriz de vista y proyecci√≥n
     glm::vec3 rayOrigin = cam->getPosition();
     glm::vec3 rayDirection = screenToWorld(x, y, cam->getViewAndProjectionMatrix(), width, height);
 
     // Si se hace clic en el gizmo, selecciona el eje y termina
     if (detectGizmoClick(rayOrigin, rayDirection)) return;
 
-    // Busca el vÈrtice m·s cercano al rayo
+    // Busca el v√©rtice m√°s cercano al rayo
     Model* closestModel = nullptr;
     Vertex* closestVertex = nullptr;
     size_t closestModelIndex = -1;
@@ -409,7 +409,7 @@ static void select(int x, int y) {
     bool foundVertex = findClosestVertex(rayOrigin, rayDirection, closestModel, closestVertex,
                                          closestModelIndex, closestVertexIndex, closestWorldPos);
 
-    // Si se encuentra un vÈrtice cercano, actualiza la selecciÛn de vÈrtice
+    // Si se encuentra un v√©rtice cercano, actualiza la selecci√≥n de v√©rtice
     if (foundVertex && selectedModelPosition != -1) {
         bool isNewModel = (closestModelIndex != selectedModelPosition);
 
@@ -427,7 +427,7 @@ static void select(int x, int y) {
         return;
     }
 
-    // Si no hay vÈrtice, busca la cara m·s cercana
+    // Si no hay v√©rtice, busca la cara m√°s cercana
     Face* closestFace = nullptr;
     size_t closestFaceIndex = -1;
     unsigned int closestTriangleIndex = -1;
@@ -448,7 +448,7 @@ static void select(int x, int y) {
         selectedAxis = NONE_AXIS;
         currentSelection = MODEL;
 
-        // Si se selecciona un modelo diferente o habÌa un vÈrtice seleccionado, actualiza el gizmo
+        // Si se selecciona un modelo diferente o hab√≠a un v√©rtice seleccionado, actualiza el gizmo
         if (isNewModel || selectedVertexPosition != -1) {
             selectedVertexPosition = -1;
             updateGizmoForSelectedModel();
@@ -458,7 +458,7 @@ static void select(int x, int y) {
 			createdVertexExtruded = false;
 		}
     } else {
-        // Si no se selecciona nada, reinicia la selecciÛn
+        // Si no se selecciona nada, reinicia la selecci√≥n
         if(currentMode!= SCALE){
             resetSelection();
             showGizmo = false;
@@ -496,7 +496,7 @@ static glm::vec3 movementGizmo(float deltaX, float deltaY) {
         break;
     default: return glm::vec3(0.0f);
     }
-	// Verificar si la c·mara est· demasiado cerca del gizmo
+	// Verificar si la c√°mara est√° demasiado cerca del gizmo
     bool tooNear = glm::length(gizmoWorldPos + selectedAxisDir - cam->getPosition()) < 0.5f;
 
 	
@@ -505,16 +505,16 @@ static glm::vec3 movementGizmo(float deltaX, float deltaY) {
     float facingDot = glm::abs(glm::dot(camToGizmo, cameraForward));
     bool isCentered = facingDot > 0.999f;
 
-    // Verificar si el eje est· casi paralelo a la c·mara
+    // Verificar si el eje est√° casi paralelo a la c√°mara
     float thresholdParallelMovement = 0.85f;
     float dotProduct = glm::abs(glm::dot(glm::normalize(selectedAxisDir), glm::normalize(cameraForward)));
     bool isAxisParallelToCamera = dotProduct > thresholdParallelMovement;
 
     if (isCentered && isAxisParallelToCamera) {
-        // Se mueve en el eje pero no se puede calcular la direcciÛn (se proyectarÌa en 2D como un punto)
+        // Se mueve en el eje pero no se puede calcular la direcci√≥n (se proyectar√≠a en 2D como un punto)
         // El movimiento pasa a ser el delta en el eje Y de la pantalla (2D)
 
-		// Si la c·mara est· demasiado cerca y el movimiento es hacia la c·mara, no se permite mover
+		// Si la c√°mara est√° demasiado cerca y el movimiento es hacia la c√°mara, no se permite mover
         if (tooNear && deltaY >= 0.0f) return glm::vec3(0.0f);
 
         return selectedAxisDir * deltaY * 0.01f;
@@ -538,7 +538,7 @@ static glm::vec3 movementGizmo(float deltaX, float deltaY) {
     glm::vec2 mouseMoveDir = glm::normalize(glm::vec2(ndcDeltaX, ndcDeltaY));
     float alignment = glm::dot(axisScreenDir, mouseMoveDir);
 
-	// Si la c·mara est· demasiado cerca y el movimiento es hacia la c·mara, no se permite mover
+	// Si la c√°mara est√° demasiado cerca y el movimiento es hacia la c√°mara, no se permite mover
     if (tooNear && (std::isnan(alignment) || alignment >= 0.0f)) return glm::vec3(0.0f);
 
 
@@ -556,7 +556,7 @@ static void translate(float deltaX, float deltaY) {
 
 	glm::vec3 translation = movementGizmo(deltaX, deltaY);
     
-    // Aplica la traslaciÛn al vÈrtice seleccionado
+    // Aplica la traslaci√≥n al v√©rtice seleccionado
     if (currentSelection == VERTEX && selectedVertexPosition != -1 && selectedModelPosition != -1) {
 		Model* selectedModel = &modelList[selectedModelPosition];
 		Vertex* selectedVertex = &selectedModel->getVertex()[selectedVertexPosition];
@@ -564,7 +564,7 @@ static void translate(float deltaX, float deltaY) {
         selectedVertexWorldPos = selectedVertex->pos;
         updateModelMesh(*selectedModel, meshList[selectedModelPosition]);
     }
-    // O aplica la traslaciÛn a todos los vÈrtices del modelo seleccionado
+    // O aplica la traslaci√≥n a todos los v√©rtices del modelo seleccionado
     else if (currentSelection == MODEL && selectedModelPosition != -1) {
         Model* selectedModel = &modelList[selectedModelPosition];
         glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), translation);
@@ -573,7 +573,7 @@ static void translate(float deltaX, float deltaY) {
         }
         updateModelMesh(*selectedModel, meshList[selectedModelPosition]);
     }
-    // Actualiza la posiciÛn del gizmo y sus modelos
+    // Actualiza la posici√≥n del gizmo y sus modelos
     gizmoPosition += translation;
     gizmo.setPosition(gizmoPosition);
     deleteMesh(gizmoMeshX);
@@ -587,7 +587,7 @@ static void translate(float deltaX, float deltaY) {
 static void scale(float deltaX, float deltaY) {
     if (selectedModelPosition == -1) return;
     
-    // Obtiene la direcciÛn del eje activo (transformada por el gizmo)
+    // Obtiene la direcci√≥n del eje activo (transformada por el gizmo)
     glm::mat3 gizmoBasisMatrix = glm::mat3_cast(gizmo.rotation);
     glm::vec3 axisDir;
     switch (selectedAxis) {
@@ -602,9 +602,9 @@ static void scale(float deltaX, float deltaY) {
     glm::vec3 scaleVec(1.0f);
 
     if (selectedAxis == NONE_AXIS) {
-		float scaleFactor = 1.0f - deltaY * 0.01f; // Escala uniforme seg˙n movimiento Y del ratÛn
+		float scaleFactor = 1.0f - deltaY * 0.01f; // Escala uniforme seg√∫n movimiento Y del rat√≥n
 
-        // Evita escala negativa o demasiado pequeÒa
+        // Evita escala negativa o demasiado peque√±a
         if (scaleFactor < 0.01f) scaleFactor = 0.01f;
         scaleVec = glm::vec3(scaleFactor);
     }
@@ -615,7 +615,7 @@ static void scale(float deltaX, float deltaY) {
         float delta = glm::dot(move, axisDir); // componente sobre el eje
         float scaleFactor = 1.0f + delta * 0.5f;
 
-        // Evita escala negativa o demasiado pequeÒa
+        // Evita escala negativa o demasiado peque√±a
         if (scaleFactor < 0.01f) scaleFactor = 0.01f;
 
         // factor de escala por eje
@@ -635,7 +635,7 @@ static void scale(float deltaX, float deltaY) {
         glm::transpose(gizmoRot) *
         transform;
 
-    // aplica a vÈrtices
+    // aplica a v√©rtices
     for (auto& v : selectedModel->getVertex())
         v.pos = glm::vec3(finalTransform * glm::vec4(v.pos, 1.0f));
 
@@ -666,14 +666,14 @@ static void extrudeFace(float deltaX, float deltaY) {
         std::map<unsigned int, unsigned int> oldToNewVertexMap;
         std::set<unsigned int> uniqueOldVertexIndices;
 
-        // Obtener vÈrtices ˙nicos de la cara original ANTES de modificar el vector
+        // Obtener v√©rtices √∫nicos de la cara original ANTES de modificar el vector
         for (int i = 0; i < selectedFace->index.size(); i++) {
             for (int j = 0; j < 3; j++) {
                 uniqueOldVertexIndices.insert(selectedFace->index[i][j]);
             }
         }
 
-        // Crear nuevos vÈrtices
+        // Crear nuevos v√©rtices
         std::vector<unsigned int> newVertexIndices;
         for (auto idx : uniqueOldVertexIndices) {
             Vertex newV = vertices[idx];
@@ -704,9 +704,9 @@ static void extrudeFace(float deltaX, float deltaY) {
             model.getFaces().push_back(sideFace);
         }
 
-        // Reestablecer el puntero despuÈs de modificar el vector
+        // Reestablecer el puntero despu√©s de modificar el vector
         selectedFace = &model.getFaces()[selectedFacePosition];
-        // Modificar la cara original para usar los nuevos vÈrtices
+        // Modificar la cara original para usar los nuevos v√©rtices
         for (int i = 0; i < selectedFace->index.size(); i++) {
             for (int j = 0; j < 3; j++) {
                 unsigned int oldIndex = selectedFace->index[i][j];
@@ -719,7 +719,7 @@ static void extrudeFace(float deltaX, float deltaY) {
 
     }
     else {
-        // Mover vÈrtices existentes
+        // Mover v√©rtices existentes
         std::set<unsigned int> uniqueNewVertexIndices;
         for (int i = 0; i < selectedFace->index.size(); i++) {
             for (int j = 0; j < 3; j++) {
@@ -757,7 +757,7 @@ static size_t createPyramid(int sides) {
     float radius = 1.0f;
     float height = 2.0f;
     
-    // VÈrtices del perÌmetro de la base
+    // V√©rtices del per√≠metro de la base
     for (int i = 0; i < sides; ++i) {
         float angle = 2.0f * glm::pi<float>() * i / sides;
         float x = radius * cos(angle);
@@ -765,7 +765,7 @@ static size_t createPyramid(int sides) {
         vertices.push_back(Vertex(x, -height/2.0f, z));
     }
     
-    // VÈrtice de la c˙spide
+    // V√©rtice de la c√∫spide
     vertices.push_back(Vertex(0.0f, height/2.0f, 0.0f));
     unsigned int apexIndex = sides;
     
@@ -773,7 +773,7 @@ static size_t createPyramid(int sides) {
     for (unsigned int i = 0; i < (unsigned int)sides; ++i) {
         unsigned int next_i = (i + 1) % sides;
         
-        // VÈrtices de la base
+        // V√©rtices de la base
         unsigned int base_current = i;
         unsigned int base_next = next_i;
         
@@ -796,7 +796,7 @@ static size_t createPyramid(int sides) {
     }
     faces.push_back(baseTriangles);
     
-    // Aplicar transformaciÛn
+    // Aplicar transformaci√≥n
     glm::mat4 transform = glm::translate(glm::mat4(1.0f), pyramidPosition)*glm::mat4_cast(cam->getOrientation());
     transform = glm::scale(transform, glm::vec3(0.5f, 0.5f, 0.5f));
     
@@ -815,17 +815,17 @@ static size_t createPyramid(int sides) {
 static size_t createPrism(unsigned int sides) {
     if (!cam || sides < 3) return -1;
     
-    // Obtener posiciÛn y direcciÛn frontal de la c·mara
+    // Obtener posici√≥n y direcci√≥n frontal de la c√°mara
     glm::vec3 cameraPos = cam->getPosition();
     glm::vec3 cameraFront = cam->getFront();
     
-    // Calcular posiciÛn del prisma: posiciÛn de c·mara + direcciÛn frontal
+    // Calcular posici√≥n del prisma: posici√≥n de c√°mara + direcci√≥n frontal
     glm::vec3 prismPosition = cameraPos + cameraFront * 3.0f;
     
     std::vector<Vertex> vertices;
     std::vector<Face> faces;
     
-    // Crear vÈrtices de la base inferior
+    // Crear v√©rtices de la base inferior
     float radius = 1.0f;
     float height = 2.0f;
     
@@ -892,7 +892,7 @@ static size_t createPrism(unsigned int sides) {
     }
     faces.push_back(baseUpTriangles);
     
-    // Aplicar transformaciÛn a la posiciÛn deseada
+    // Aplicar transformaci√≥n a la posici√≥n deseada
     glm::mat4 transform = glm::translate(glm::mat4(1.0f), prismPosition) * glm::mat4_cast(cam->getOrientation());
     transform = glm::scale(transform, glm::vec3(0.5f, 0.5f, 0.5f));
     
@@ -911,11 +911,11 @@ static size_t createPrism(unsigned int sides) {
 static size_t createCubes() {
     if (!cam) return -1;
 
-    // Obtener posiciÛn y direcciÛn frontal de la c·mara
+    // Obtener posici√≥n y direcci√≥n frontal de la c√°mara
     glm::vec3 cameraPos = cam->getPosition();
     glm::vec3 cameraFront = cam->getFront();
 
-    // Calcular posiciÛn del cubo: posiciÛn de c·mara + direcciÛn frontal
+    // Calcular posici√≥n del cubo: posici√≥n de c√°mara + direcci√≥n frontal
     glm::vec3 cubePosition = cameraPos + cameraFront * 3.0f; // 3.0f unidades adelante
 
     std::vector<Vertex> cubeVertices = {
@@ -930,9 +930,9 @@ static size_t createCubes() {
         {4, 0, 3, 3, 7, 4}, {3, 2, 6, 6, 7, 3}, {4, 5, 1, 1, 0, 4}
     };
 
-    // Crear solo un cubo en la posiciÛn calculada
+    // Crear solo un cubo en la posici√≥n calculada
     std::vector<Vertex> transformedVertices;
-    float scale = 0.5f; // TamaÒo del cubo
+    float scale = 0.5f; // Tama√±o del cubo
 
     glm::mat4 transform = glm::translate(glm::mat4(1.0f), cubePosition) * glm::mat4_cast(cam->getOrientation());
     transform = glm::scale(transform, glm::vec3(scale, scale, scale));
@@ -952,12 +952,12 @@ static size_t createCubes() {
     modelList.push_back(cubeModel);
     meshList.push_back(createMesh(cubeModel));
 
-    // Devolver la posiciÛn del nuevo modelo en la lista
+    // Devolver la posici√≥n del nuevo modelo en la lista
     return modelList.size() - 1;
 }
 
 
-// Callback de teclado para cambiar modos y mover la c·mara.
+// Callback de teclado para cambiar modos y mover la c√°mara.
 static void keyboardCB(unsigned char key, int x, int y) {
     float cameraSpeed = 0.1f;
     if (!cam) return;
@@ -986,7 +986,7 @@ static void keyboardCB(unsigned char key, int x, int y) {
             // Seleccionar el nuevo modelo
             selectedModelPosition = newModelIndex;
 
-            // Cambiar a modo traslaciÛn
+            // Cambiar a modo traslaci√≥n
             currentMode = TRANSLATE;
             currentSelection = MODEL;
 
@@ -996,7 +996,7 @@ static void keyboardCB(unsigned char key, int x, int y) {
         break;
     }
 
-    case 'n': gizmoLookAtNormal();break;//PROBANDO
+    case 'n': gizmoLookAtNormal();break;
 
     case 'x':
         if (currentMode == EXTRUDE) {
@@ -1010,18 +1010,10 @@ static void keyboardCB(unsigned char key, int x, int y) {
             updateGizmoForSelectedModel();
         }
         break;
-    case 'l': //makeFacePlanar
-        if (selectedModelPosition != -1 && selectedFacePosition != -1) {
-            Model* selectedModel = &modelList[selectedModelPosition];
-            Face* selectedFace = &selectedModel->getFaces()[selectedFacePosition];
-            makeFacePlanar(*selectedModel, *selectedFace);
-            updateModelMesh(*selectedModel, meshList[selectedModelPosition]);
-        }
-		break;
     }
     cam->move(moveDir);
 }
-// Callback de ratÛn para gestionar clicks y selecciÛn.
+// Callback de rat√≥n para gestionar clicks y selecci√≥n.
 static void mouseCB(int button, int state, int x, int y) {
     ImGui_ImplGLUT_MouseFunc(button, state, x, y);
     ImGuiIO& io = ImGui::GetIO();
@@ -1052,7 +1044,7 @@ static void mouseCB(int button, int state, int x, int y) {
     }
 }
 
-// Callback de movimiento de ratÛn para rotar c·mara, modelos y gizmo, y traslaciÛn con el gizmo.
+// Callback de movimiento de rat√≥n para rotar c√°mara, modelos y gizmo, y traslaci√≥n con el gizmo.
 static void mouseMotionCB(int x, int y) {
     ImGui_ImplGLUT_MotionFunc(x, y);
     ImGuiIO& io = ImGui::GetIO();
@@ -1065,7 +1057,7 @@ static void mouseMotionCB(int x, int y) {
 
 
     if (cam->isLeftButtonPressed()) {
-        // Si est· en modo traslaciÛn y hay un eje seleccionado, mueve el modelo/vÈrtice
+        // Si est√° en modo traslaci√≥n y hay un eje seleccionado, mueve el modelo/v√©rtice
         if (currentMode == TRANSLATE && selectedAxis != NONE_AXIS) {
 
             // Calcula el movimiento en el espacio de mundo
@@ -1103,12 +1095,12 @@ static void mouseMotionCB(int x, int y) {
             cam->setLastMouseY(y);
 		}
         
-        // Si est· en modo rotaciÛn y hay un modelo seleccionado, rota el modelo
+        // Si est√° en modo rotaci√≥n y hay un modelo seleccionado, rota el modelo
         else if (currentMode == ROTATE && selectedModelPosition != -1) {
 			Model* selectedModel = &modelList[selectedModelPosition];
-			// Calcula la rotaciÛn entre las dos posiciones en la esfera
+			// Calcula la rotaci√≥n entre las dos posiciones en la esfera
             glm::quat deltaQuat = quatFromVectors(lastPos, currentPos);
-			// Rota todos los vÈrtices del modelo alrededor de su centroide
+			// Rota todos los v√©rtices del modelo alrededor de su centroide
             glm::vec3 center = centroidModel(*selectedModel);
             for (auto& v : selectedModel->getVertex()) {
                 glm::vec3 localPos = v.pos - center;
@@ -1120,7 +1112,7 @@ static void mouseMotionCB(int x, int y) {
             cam->setLastMousePos(currentPos);
         }
     }
-    // Si se mantiene presionado el botÛn derecho, rota el gizmo
+    // Si se mantiene presionado el bot√≥n derecho, rota el gizmo
     if (cam->isRightButtonPressed() ) {
         if (showGizmo && selectedModelPosition != -1) {
             glm::quat deltaQuat = quatFromVectors(lastPos, currentPos);
@@ -1133,15 +1125,15 @@ static void mouseMotionCB(int x, int y) {
             gizmoMeshZ = createMesh(gizmo.modelZ);
             cam->setLastMousePos(currentPos);
         }
-        // Si no est· en modo rotaciÛn, rota la c·mara
+        // Si no est√° en modo rotaci√≥n, rota la c√°mara
         else if (currentMode != ROTATE) {
             float sensitivity = 0.5f;
             glm::vec3 adjustedCurrentPos = lastPos + (currentPos - lastPos) * sensitivity;
 
-            // Calcula la rotaciÛn entre las dos posiciones en la esfera
+            // Calcula la rotaci√≥n entre las dos posiciones en la esfera
             glm::quat deltaQuat = quatFromVectors(lastPos, adjustedCurrentPos);
             glm::quat currentOrientation = cam->getOrientation();
-            // Aplica la rotaciÛn a la orientaciÛn de la c·mara
+            // Aplica la rotaci√≥n a la orientaci√≥n de la c√°mara
             glm::quat newOrientation = glm::normalize(deltaQuat * currentOrientation);
             cam->setOrientation(newOrientation);
             cam->setLastMousePos(currentPos);
@@ -1152,7 +1144,7 @@ static void mouseMotionCB(int x, int y) {
 }
 
 
-// Dibuja un botÛn de modo en la interfaz ImGui.
+// Dibuja un bot√≥n de modo en la interfaz ImGui.
 void drawModeButton(const char* label, Mode expectedMode) {
     bool isActive = currentMode == expectedMode;
     if (isActive) {
@@ -1236,21 +1228,21 @@ void drawModeButton(const char* label, Mode expectedMode) {
     if (isActive) ImGui::PopStyleColor(3);
 }
 
-// Crea la ventana de control de ImGui con informaciÛn y botones de modo.
+// Crea la ventana de control de ImGui con informaci√≥n y botones de modo.
 static void createImGUIWindow() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGLUT_NewFrame();
     ImGui::NewFrame();
     ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
     ImGui::Begin(u8"Control Panel");
-    // BotÛn para crear cubo y seleccionarlo
+    // Bot√≥n para crear cubo y seleccionarlo
     if (ImGui::Button(u8"Crear Cubo")) {
         size_t newModelIndex = createCubes();
         if (newModelIndex != -1) {
             // Seleccionar el nuevo modelo
             selectedModelPosition = newModelIndex;
 
-            // Cambiar a modo traslaciÛn
+            // Cambiar a modo traslaci√≥n
             currentMode = TRANSLATE;
             currentSelection = MODEL;
 
@@ -1261,8 +1253,8 @@ static void createImGUIWindow() {
     ImGui::Separator();
 
     // Controles para crear prismas
-    ImGui::Text(u8"Crear MÛdelo B·sico:");
-    static int sides = 6; // N˙mero de lados por defecto
+    ImGui::Text(u8"Crear M√≥delo B√°sico:");
+    static int sides = 6; // N√∫mero de lados por defecto
 
     ImGui::BeginGroup();
     ImGui::Text("Lados: %d", sides);
@@ -1283,7 +1275,7 @@ static void createImGUIWindow() {
             // Seleccionar el nuevo modelo
             selectedModelPosition = newModelIndex;
 
-            // Cambiar a modo traslaciÛn
+            // Cambiar a modo traslaci√≥n
             currentMode = TRANSLATE;
             currentSelection = MODEL;
 
@@ -1291,13 +1283,13 @@ static void createImGUIWindow() {
             updateGizmoForSelectedModel();
         }
     }
-    if (ImGui::Button(u8"Crear Pir·mide")) {
+    if (ImGui::Button(u8"Crear Pir√°mide")) {
 		size_t newModelIndex = createPyramid(sides);
         if (newModelIndex != -1) {
             // Seleccionar el nuevo modelo
             selectedModelPosition = newModelIndex;
 
-            // Cambiar a modo traslaciÛn
+            // Cambiar a modo traslaci√≥n
             currentMode = TRANSLATE;
             currentSelection = MODEL;
 
@@ -1315,7 +1307,7 @@ static void createImGUIWindow() {
             modelList.erase(modelList.begin() + selectedModelPosition);
             meshList.erase(meshList.begin() + selectedModelPosition);
 
-            // Resetear selecciÛn
+            // Resetear selecci√≥n
             resetSelection();
             showGizmo = false;
             selectedAxis = NONE_AXIS;
@@ -1323,9 +1315,9 @@ static void createImGUIWindow() {
     }
     ImGui::Separator();
     ImGui::Text(u8"Modo actual:");
-    drawModeButton(u8"Crear VÈrtice", CREATE_VERTEX);
+    drawModeButton(u8"Crear V√©rtice", CREATE_VERTEX);
     drawModeButton(u8"Rotar Modelo", ROTATE);
-    drawModeButton(u8"Trasladar Modelo/VÈrtice", TRANSLATE);
+    drawModeButton(u8"Trasladar Modelo/V√©rtice", TRANSLATE);
     drawModeButton(u8"Escalar Modelo", SCALE);
     drawModeButton(u8"Extruir Cara", EXTRUDE);
 
@@ -1333,20 +1325,20 @@ static void createImGUIWindow() {
     if (selectedModelPosition != -1) {
 		Model* selectedModel = &modelList[selectedModelPosition];
         ImGui::Text(u8"Modelo seleccionado: %zu", selectedModelPosition);
-        ImGui::Text(u8"VÈrtices: %zu", selectedModel->getVertex().size());
+        ImGui::Text(u8"V√©rtices: %zu", selectedModel->getVertex().size());
         ImGui::Text(u8"Caras: %zu", selectedModel->getFaces().size());
     }
     if (selectedVertexPosition != -1) {
-        ImGui::Text(u8"VÈrtice seleccionado: %zu", selectedVertexPosition);
-        ImGui::Text(u8"PosiciÛn: (%.2f, %.2f, %.2f)",
+        ImGui::Text(u8"V√©rtice seleccionado: %zu", selectedVertexPosition);
+        ImGui::Text(u8"Posici√≥n: (%.2f, %.2f, %.2f)",
             selectedVertexWorldPos.x,
             selectedVertexWorldPos.y,
             selectedVertexWorldPos.z);
     }
-	ImGui::Text(u8"C·mara Front (%.2f, %.2f, %.2f)", 
+	ImGui::Text(u8"C√°mara Front (%.2f, %.2f, %.2f)", 
 		cam->getFront().x, cam->getFront().y, cam->getFront().z);
-	ImGui::Text(u8"C·mara Right (%.2f, %.2f, %.2f)", cam->getRight().x, cam->getRight().y, cam->getRight().z);
-	ImGui::Text(u8"C·mara Up (%.2f, %.2f, %.2f)", cam->getUp().x, cam->getUp().y, cam->getUp().z);
+	ImGui::Text(u8"C√°mara Right (%.2f, %.2f, %.2f)", cam->getRight().x, cam->getRight().y, cam->getRight().z);
+	ImGui::Text(u8"C√°mara Up (%.2f, %.2f, %.2f)", cam->getUp().x, cam->getUp().y, cam->getUp().z);
     ImGui::End();
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -1385,7 +1377,7 @@ static void renderSceneCB() {
     if (drawEdgesLocation != -1) {
         glUniform1i(drawEdgesLocation, 1);
     }
-    glLineWidth(2.0f); // Grosor de las lÌneas
+    glLineWidth(2.0f); // Grosor de las l√≠neas
     for (size_t i = 0; i < meshList.size(); ++i) {
         if (meshList[i].edgeVAO && meshList[i].edgeIndexCount > 0) {
             glBindVertexArray(meshList[i].edgeVAO);
@@ -1425,7 +1417,7 @@ static void renderSceneCB() {
     glutPostRedisplay();
     glutSwapBuffers();
 }
-// Callback para el cambio de tamaÒo de la ventana.
+// Callback para el cambio de tama√±o de la ventana.
 static void reshapeCB(int newWidth, int newHeight) {
     ImGui_ImplGLUT_ReshapeFunc(newWidth, newHeight);
     width = newWidth;
@@ -1449,13 +1441,13 @@ int main(int argc, char** argv)
     int x = 200, y = 100;
     glutInitWindowPosition(x, y);
     glutCreateWindow("Editor 3D");
-    // InicializaciÛn de GLEW y OpenGL
+    // Inicializaci√≥n de GLEW y OpenGL
     GLenum res = glewInit();
     if (res != GLEW_OK) {
         fprintf(stderr, "Error: '%s'\n", glewGetErrorString(res));
         return 1;
     }
-    // InicializaciÛn de ImGui
+    // Inicializaci√≥n de ImGui
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -1464,7 +1456,7 @@ int main(int argc, char** argv)
     ImGui_ImplGLUT_Init();
     ImGui_ImplGLUT_InstallFuncs();
     ImGui_ImplOpenGL3_Init("#version 330");
-    // ConfiguraciÛn de OpenGL
+    // Configuraci√≥n de OpenGL
     glClearColor(0.25f, 0.25f, 0.25f, 0.5f);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
@@ -1479,7 +1471,7 @@ int main(int argc, char** argv)
     glEnable(GL_POLYGON_OFFSET_LINE);
 	glPolygonOffset(1.0f, 1.0f);
 
-    // Para mejor calidad de lÌneas
+    // Para mejor calidad de l√≠neas
     glEnable(GL_LINE_SMOOTH);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
     // Carga de cubo inicial y shaders
@@ -1499,4 +1491,5 @@ int main(int argc, char** argv)
     if (cam) delete cam;
     return 0;
 }
+
 
